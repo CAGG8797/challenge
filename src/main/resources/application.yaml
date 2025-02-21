@@ -1,3 +1,19 @@
 spring:
   application:
     name: api
+  data:
+    rest:
+      detection-strategy: annotated
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/mydb
+    username: postgres
+    password: yourpassword
+    driverClassName: org.postgresql.Driver
