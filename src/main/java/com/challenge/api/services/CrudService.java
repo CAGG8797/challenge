@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 public interface CrudService<T, ID> {
     Page<T> getAll(Pageable pageable);
     T getById(ID id);
-    T create(T t);
-    T update(T t, ID id);
+    T create(T t) throws Exception;
+    T update(T t, ID id) throws Exception;
     void delete(ID id);
 }

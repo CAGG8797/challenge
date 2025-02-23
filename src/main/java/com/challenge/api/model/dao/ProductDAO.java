@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.math.BigInteger;
 
 @Data
 @Entity
+@NoArgsConstructor
 @AllArgsConstructor
 public class ProductDAO {
 
@@ -21,7 +23,7 @@ public class ProductDAO {
     @Column(name = "product_id", updatable = false, nullable = false)
     private String id;
 
-    @Column(name = "product_name", nullable = false, unique = true, length = 50)
+    @Column(name = "product_name", nullable = false, length = 50)
     @NotNull(message = "Product name is required")
     @NotBlank(message = "Product name is required")
     @Length(min = 3, max = 50, message = "Product name must be between 3 and 50 characters")
@@ -38,8 +40,11 @@ public class ProductDAO {
     @Min(value = 0, message = "Product on hand must be greater than or equal to 0")
     private BigInteger onHand;
 
-    @Column(name = "unit_price", nullable = false, precision = 2)
+    @Column(name = "unit_price", nullable = false, precision = 5)
     @NotNull(message = "Product unit price is required")
     @Min(value = 0, message = "Product unit price must be greater than or equal to 0")
     private BigDecimal unitPrice;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
 }
