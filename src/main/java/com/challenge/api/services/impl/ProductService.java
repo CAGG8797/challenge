@@ -6,7 +6,6 @@ import com.challenge.api.repositories.ExtendedCrudRepository;
 import com.challenge.api.services.CrudService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -48,39 +47,29 @@ public class ProductService implements CrudService<Product, Product, String> {
             throw new IllegalArgumentException("Product cannot be null");
         }
 
-        try {
-            ProductDAO productDAO = mapToDAO(product);
-            productDAO.setId(null);
-            productDAO = repository.saveAndFlush(productDAO);
-            return mapToDTO(productDAO);
-        } catch (ConstraintViolationException e) {
-            String message = e.getConstraintViolations().iterator().next().getMessage();
-            throw new Exception(message);
-        }
+        ProductDAO productDAO = mapToDAO(product);
+        productDAO.setId(null);
+        productDAO = repository.saveAndFlush(productDAO);
+
+        return mapToDTO(productDAO);
     }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public Product update(String id, Product product)  throws Exception {
+    public Product update(String id, Product product) throws Exception {
         if (product == null) {
             throw new IllegalArgumentException("Product to update cannot be null");
         }
 
-        try {
-            ProductDAO productDAO = getProductFromDatabase(id);
+        ProductDAO productDAO = getProductFromDatabase(id);
+        productDAO.setName(product.name());
+        productDAO.setDescription(product.description());
+        productDAO.setOnHand(BigInteger.valueOf(product.onHand() != null ? product.onHand() : 0));
+        productDAO.setUnitPrice(product.unitPrice());
+        productDAO = repository.saveAndFlush(productDAO);
 
-            productDAO.setName(product.name());
-            productDAO.setDescription(product.description());
-            productDAO.setOnHand(BigInteger.valueOf(product.onHand() != null ? product.onHand() : 0));
-            productDAO.setUnitPrice(product.unitPrice());
+        return mapToDTO(productDAO);
 
-            productDAO = repository.saveAndFlush(productDAO);
-
-            return mapToDTO(productDAO);
-        } catch (ConstraintViolationException e) {
-            String message = e.getConstraintViolations().iterator().next().getMessage();
-            throw new Exception(message);
-        }
     }
 
     @Override

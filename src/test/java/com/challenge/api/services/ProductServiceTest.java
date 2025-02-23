@@ -262,7 +262,7 @@ public class ProductServiceTest {
     public void deleteOneProductSuccessfully() {
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(SINGLE_PRODUCT_REPOSITORY_RESPONSE));
         productService.delete(PRODUCT_ID);
-        verify(productRepository).deleteById(PRODUCT_ID);
+        verify(productRepository).softDeleteById(PRODUCT_ID);
     }
 
     @ParameterizedTest
