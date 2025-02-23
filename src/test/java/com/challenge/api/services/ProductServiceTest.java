@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.challenge.api.model.dao.ProductDAO;
-import com.challenge.api.model.dto.ProductDTO;
+import com.challenge.api.model.dto.Product;
 import com.challenge.api.repositories.ExtendedCrudRepository;
 import com.challenge.api.services.impl.ProductService;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,7 +26,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import javax.xml.validation.Validator;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -42,8 +41,8 @@ public class ProductServiceTest {
     private static final String PRODUCT_DESCRIPTION = "product_description";
     private static final BigInteger PRODUCT_ON_HAND = new BigInteger("20");
     private static final BigDecimal PRODUCT_UNIT_PRICE = new BigDecimal("50.5");
-    private static final ProductDTO PRODUCT_DTO = new ProductDTO(PRODUCT_ID, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
-    private static final ProductDAO SINGLE_PRODUCT_REPOSITORY_RESPONSE = new ProductDAO(PRODUCT_ID, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND, PRODUCT_UNIT_PRICE);
+    private static final Product PRODUCT_DTO = new Product(PRODUCT_ID, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
+    private static final ProductDAO SINGLE_PRODUCT_REPOSITORY_RESPONSE = new ProductDAO(PRODUCT_ID, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND, PRODUCT_UNIT_PRICE, true);
 
     @Mock
     private ExtendedCrudRepository<ProductDAO, String> productRepository;
@@ -56,7 +55,7 @@ public class ProductServiceTest {
     public void findAllProductsSuccessfully(int pageSize) {
         PageRequest pageRequest = PageRequest.of(0, pageSize);
         when(productRepository.findAll(any(Pageable.class))).thenReturn(databaseProducts(pageRequest));
-        Page<ProductDTO> result = productService.getAll(pageRequest);
+        Page<Product> result = productService.getAll(pageRequest);
         assertNotNull(result);
         assertEquals(pageSize, result.getTotalElements());
     }
@@ -72,7 +71,7 @@ public class ProductServiceTest {
     @Test
     public void findProductByIdSuccessfully() {
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(SINGLE_PRODUCT_REPOSITORY_RESPONSE));
-        ProductDTO result = productService.getById(PRODUCT_ID);
+        Product result = productService.getById(PRODUCT_ID);
 
         assertNotNull(result);
         assertEquals(PRODUCT_ID, result.id());
@@ -101,9 +100,9 @@ public class ProductServiceTest {
 
     @Test
     public void createOneProductSuccessfully() throws Exception {
-        ProductDAO productDAO = new ProductDAO(UUID.randomUUID().toString(), PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND, PRODUCT_UNIT_PRICE);
+        ProductDAO productDAO = new ProductDAO(UUID.randomUUID().toString(), PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND, PRODUCT_UNIT_PRICE, true);
         when(productRepository.saveAndFlush(any(ProductDAO.class))).thenReturn(productDAO);
-        ProductDTO result = productService.create(PRODUCT_DTO);
+        Product result = productService.create(PRODUCT_DTO);
 
         assertNotNull(result);
         assertNotEquals(PRODUCT_DTO, result);
@@ -126,74 +125,74 @@ public class ProductServiceTest {
     @ParameterizedTest
     @MethodSource("invalidNames")
     public void tryToCreateProductWithInvalidName(String expectedMessage, String invalidName) {
-        ProductDTO productDTO = new ProductDTO(null, invalidName, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
+        Product product = new Product(null, invalidName, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
 
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.create(productDTO));
+        Exception exception = assertThrows(Exception.class, () -> productService.create(product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @ParameterizedTest
     @MethodSource("invalidDescriptions")
     public void tryToCreateProductWithNullOrEmptyDescription(String expectedMessage, String invalidDescription) {
-        ProductDTO productDTO = new ProductDTO(null, PRODUCT_NAME, invalidDescription, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
+        Product product = new Product(null, PRODUCT_NAME, invalidDescription, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
 
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.create(productDTO));
+        Exception exception = assertThrows(Exception.class, () -> productService.create(product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @ParameterizedTest
     @MethodSource("invalidOnHand")
     public void tryToCreateProductWithInvalidOnHand(String expectedMessage, BigInteger invalidOnHand) {
-        ProductDTO productDTO = new ProductDTO(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, invalidOnHand == null ? null : invalidOnHand.intValue(), PRODUCT_UNIT_PRICE);
+        Product product = new Product(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, invalidOnHand == null ? null : invalidOnHand.intValue(), PRODUCT_UNIT_PRICE);
 
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.create(productDTO));
+        Exception exception = assertThrows(Exception.class, () -> productService.create(product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @ParameterizedTest
     @MethodSource("invalidUnitPrice")
     public void tryToCreateProductWithInvalidUnitPrice(String expectedMessage, BigDecimal invalidUnitPrice) {
-        ProductDTO productDTO = new ProductDTO(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), invalidUnitPrice);
+        Product product = new Product(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), invalidUnitPrice);
 
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.create(productDTO));
+        Exception exception = assertThrows(Exception.class, () -> productService.create(product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @Test
     public void updateOneProductSuccessfully() throws Exception {
-        ProductDTO updatedProductDTO = new ProductDTO("new Id", "new Name", "new Description", 100, new BigDecimal("100"));
+        Product updatedProduct = new Product("new Id", "new Name", "new Description", 100, new BigDecimal("100"));
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(SINGLE_PRODUCT_REPOSITORY_RESPONSE));
 
-        when(productRepository.saveAndFlush(any(ProductDAO.class))).thenReturn(new ProductDAO(PRODUCT_ID, updatedProductDTO.name(),
-                updatedProductDTO.description(), new BigInteger(String.valueOf(updatedProductDTO.onHand())), updatedProductDTO.unitPrice()));
+        when(productRepository.saveAndFlush(any(ProductDAO.class))).thenReturn(new ProductDAO(PRODUCT_ID, updatedProduct.name(),
+                updatedProduct.description(), new BigInteger(String.valueOf(updatedProduct.onHand())), updatedProduct.unitPrice(), true));
 
-        ProductDTO result = productService.update(updatedProductDTO, PRODUCT_ID);
+        Product result = productService.update(PRODUCT_ID, updatedProduct);
 
         assertNotNull(result);
         assertEquals(PRODUCT_ID, result.id());
-        assertEquals(updatedProductDTO.name(), result.name());
-        assertEquals(updatedProductDTO.description(), result.description());
-        assertEquals(updatedProductDTO.onHand(), result.onHand());
-        assertEquals(updatedProductDTO.unitPrice(), result.unitPrice());
+        assertEquals(updatedProduct.name(), result.name());
+        assertEquals(updatedProduct.description(), result.description());
+        assertEquals(updatedProduct.onHand(), result.onHand());
+        assertEquals(updatedProduct.unitPrice(), result.unitPrice());
     }
 
     @ParameterizedTest
     @MethodSource("invalidUpdateParams")
-    public void tryToUpdateProductWithNullAndEmptyParams(ProductDTO productDTO, String id, String expectedMessage) {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> productService.update(productDTO, id));
+    public void tryToUpdateProductWithNullAndEmptyParams(Product product, String id, String expectedMessage) {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> productService.update(id, product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -203,59 +202,59 @@ public class ProductServiceTest {
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(EntityNotFoundException.class, () -> productService.update(PRODUCT_DTO, PRODUCT_ID));
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> productService.update(PRODUCT_ID, PRODUCT_DTO));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @ParameterizedTest
     @MethodSource("invalidNames")
     public void tryToUpdateProductWithInvalidName(String expectedMessage, String invalidName) {
-        ProductDTO productDTO = new ProductDTO(null, invalidName, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
+        Product product = new Product(null, invalidName, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(SINGLE_PRODUCT_REPOSITORY_RESPONSE));
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.update(productDTO, PRODUCT_ID));
+        Exception exception = assertThrows(Exception.class, () -> productService.update(PRODUCT_ID, product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @ParameterizedTest
     @MethodSource("invalidDescriptions")
     public void tryToUpdateProductWithNullOrEmptyDescription(String expectedMessage, String invalidDescription) {
-        ProductDTO productDTO = new ProductDTO(null, PRODUCT_NAME, invalidDescription, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
+        Product product = new Product(null, PRODUCT_NAME, invalidDescription, PRODUCT_ON_HAND.intValue(), PRODUCT_UNIT_PRICE);
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(SINGLE_PRODUCT_REPOSITORY_RESPONSE));
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.update(productDTO, PRODUCT_ID));
+        Exception exception = assertThrows(Exception.class, () -> productService.update(PRODUCT_ID, product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @ParameterizedTest
     @MethodSource("invalidOnHand")
     public void tryToUpdateProductWithInvalidOnHand(String expectedMessage, BigInteger invalidOnHand) {
-        ProductDTO productDTO = new ProductDTO(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, invalidOnHand == null ? null : invalidOnHand.intValue(), PRODUCT_UNIT_PRICE);
+        Product product = new Product(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, invalidOnHand == null ? null : invalidOnHand.intValue(), PRODUCT_UNIT_PRICE);
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(SINGLE_PRODUCT_REPOSITORY_RESPONSE));
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.update(productDTO, PRODUCT_ID));
+        Exception exception = assertThrows(Exception.class, () -> productService.update(PRODUCT_ID, product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
     @ParameterizedTest
     @MethodSource("invalidUnitPrice")
     public void tryToUpdateProductWithInvalidUnitPrice(String expectedMessage, BigDecimal invalidUnitPrice) {
-        ProductDTO productDTO = new ProductDTO(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), invalidUnitPrice);
+        Product product = new Product(null, PRODUCT_NAME, PRODUCT_DESCRIPTION, PRODUCT_ON_HAND.intValue(), invalidUnitPrice);
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(SINGLE_PRODUCT_REPOSITORY_RESPONSE));
         when(productRepository.saveAndFlush(any(ProductDAO.class)))
                 .thenThrow(new ConstraintViolationException(expectedMessage, null, null));
 
-        Exception exception = assertThrows(Exception.class, () -> productService.update(productDTO, PRODUCT_ID));
+        Exception exception = assertThrows(Exception.class, () -> productService.update(PRODUCT_ID, product));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -335,7 +334,7 @@ public class ProductServiceTest {
 
         for (int i = 0; i < pageRequest.getPageSize(); i++) {
             products.add(new ProductDAO("id_" + i, "product_" + i,
-                    "product_description_" + i, new BigInteger("20"), new BigDecimal("50.5")));
+                    "product_description_" + i, new BigInteger("20"), new BigDecimal("50.5"), true));
         }
 
         return new PageImpl<>(products, pageRequest, products.size());

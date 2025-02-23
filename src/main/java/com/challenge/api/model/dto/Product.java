@@ -2,7 +2,7 @@ package com.challenge.api.model.dto;
 
 import java.math.BigDecimal;
 
-public record ProductDTO(
+public record Product(
         String id,
         String name,
         String description,

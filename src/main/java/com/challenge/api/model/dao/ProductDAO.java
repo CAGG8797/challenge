@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 @Data
-@Entity
+@Entity(name = "products")
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDAO {

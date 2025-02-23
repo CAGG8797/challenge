@@ -1,7 +1,7 @@
 package com.challenge.api.services.impl;
 
 import com.challenge.api.model.dao.ProductDAO;
-import com.challenge.api.model.dto.ProductDTO;
+import com.challenge.api.model.dto.Product;
 import com.challenge.api.repositories.ExtendedCrudRepository;
 import com.challenge.api.services.CrudService;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,7 +17,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigInteger;
 
 @Service(value = "productService")
-public class ProductService implements CrudService<ProductDTO, String> {
+public class ProductService implements CrudService<Product, Product, String> {
 
     private final ExtendedCrudRepository<ProductDAO, String> repository;
 
@@ -27,7 +27,7 @@ public class ProductService implements CrudService<ProductDTO, String> {
     }
 
     @Override
-    public Page<ProductDTO> getAll(Pageable pageable) {
+    public Page<Product> getAll(Pageable pageable) {
         if (pageable == null) {
             throw new IllegalArgumentException("PageRequest cannot be null");
         }
@@ -37,19 +37,19 @@ public class ProductService implements CrudService<ProductDTO, String> {
     }
 
     @Override
-    public ProductDTO getById(String id) {
+    public Product getById(String id) {
         return mapToDTO(getProductFromDatabase(id));
     }
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public ProductDTO create(ProductDTO productDTO) throws Exception {
-        if (productDTO == null) {
+    public Product create(Product product) throws Exception {
+        if (product == null) {
             throw new IllegalArgumentException("Product cannot be null");
         }
 
         try {
-            ProductDAO productDAO = mapToDAO(productDTO);
+            ProductDAO productDAO = mapToDAO(product);
             productDAO.setId(null);
             productDAO = repository.saveAndFlush(productDAO);
             return mapToDTO(productDAO);
@@ -61,18 +61,18 @@ public class ProductService implements CrudService<ProductDTO, String> {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public ProductDTO update(ProductDTO productDTO, String id)  throws Exception {
-        if (productDTO == null) {
+    public Product update(String id, Product product)  throws Exception {
+        if (product == null) {
             throw new IllegalArgumentException("Product to update cannot be null");
         }
 
         try {
             ProductDAO productDAO = getProductFromDatabase(id);
 
-            productDAO.setName(productDTO.name());
-            productDAO.setDescription(productDTO.description());
-            productDAO.setOnHand(BigInteger.valueOf(productDTO.onHand() != null ? productDTO.onHand() : 0));
-            productDAO.setUnitPrice(productDTO.unitPrice());
+            productDAO.setName(product.name());
+            productDAO.setDescription(product.description());
+            productDAO.setOnHand(BigInteger.valueOf(product.onHand() != null ? product.onHand() : 0));
+            productDAO.setUnitPrice(product.unitPrice());
 
             productDAO = repository.saveAndFlush(productDAO);
 
@@ -100,8 +100,8 @@ public class ProductService implements CrudService<ProductDTO, String> {
                 .orElseThrow(() -> new EntityNotFoundException("Product with id " + id + " not found"));
     }
 
-    private static ProductDTO mapToDTO(ProductDAO productDAO) {
-        return new ProductDTO(
+    private static Product mapToDTO(ProductDAO productDAO) {
+        return new Product(
                 productDAO.getId(),
                 productDAO.getName(),
                 productDAO.getDescription(),
@@ -110,13 +110,13 @@ public class ProductService implements CrudService<ProductDTO, String> {
         );
     }
 
-    private static ProductDAO mapToDAO(ProductDTO productDTO) {
+    private static ProductDAO mapToDAO(Product product) {
         return new ProductDAO(
-                productDTO.id(),
-                productDTO.name(),
-                productDTO.description(),
-                BigInteger.valueOf(productDTO.onHand() != null ? productDTO.onHand() : 0),
-                productDTO.unitPrice(),
+                product.id(),
+                product.name(),
+                product.description(),
+                BigInteger.valueOf(product.onHand() != null ? product.onHand() : 0),
+                product.unitPrice(),
                 true
         );
     }

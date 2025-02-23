@@ -3,10 +3,10 @@ package com.challenge.api.services;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-public interface CrudService<T, ID> {
-    Page<T> getAll(Pageable pageable);
-    T getById(ID id);
-    T create(T t) throws Exception;
-    T update(T t, ID id) throws Exception;
+public interface CrudService<RQ, RS, ID> {
+    Page<RS> getAll(Pageable pageable);
+    RS getById(ID id);
+    RS create(RQ request) throws Exception;
+    RS update(ID id, RQ request) throws Exception;
     void delete(ID id);
 }
