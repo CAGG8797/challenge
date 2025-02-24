@@ -8,5 +8,5 @@ public interface CrudService<RQ, RS, ID> {
     RS getById(ID id);
     RS create(RQ request) throws Exception;
     RS update(ID id, RQ request) throws Exception;
-    void delete(ID id);
+    void delete(ID id) throws Exception;
 }

@@ -19,7 +19,12 @@ public class MapperUtils {
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setId(order.getId());
         orderResponse.setCustomerName(order.getCustomerName());
-        orderResponse.setItems(order.getItems().stream().map(MapperUtils::map).toList());
+
+        orderResponse.setItems(order.getItems()
+                .stream()
+                .filter(OrderItemDAO::isActive)
+                .map(MapperUtils::map).toList());
+
         return orderResponse;
     }
 

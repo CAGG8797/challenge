@@ -45,7 +45,7 @@ public class OrderController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable String id) throws Exception {
         ordersService.delete(id);
     }
 }

@@ -1,4 +1,7 @@
 package com.challenge.api.model.dto;
 
-public record OrderRequest() {
+import java.util.List;
+
+public record OrderRequest(String customerName,
+                           List<OrderItemRequest> items) {
 }

@@ -23,13 +23,16 @@ public class OrderItemDAO {
 
     @Column(name = "quantity", nullable = false)
     @NotNull(message = "Quantity is required")
-    @Min(value = 0, message = "Quantity must be greater than or equal to 0")
+    @Min(value = 1, message = "Quantity must be greater than or equal to 1")
     private BigInteger quantity;
 
     @Column(name = "unit_price", nullable = false)
     @NotNull(message = "Unit price is required")
-    @Min(value = 0, message = "Unit price must be greater than or equal to 0")
+    @Min(value = 1, message = "Unit price must be greater than or equal to 1")
     private BigDecimal unitPrice;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name="product_id", nullable = false)
