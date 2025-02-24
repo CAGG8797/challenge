@@ -1,5 +1,6 @@
 package com.challenge.api.services.impl;
 
+import com.challenge.api.MapperUtils;
 import com.challenge.api.model.dao.ProductDAO;
 import com.challenge.api.model.dto.Product;
 import com.challenge.api.repositories.ExtendedCrudRepository;
@@ -15,7 +16,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigInteger;
 
-@Service(value = "productService")
+@Service(value = "productsService")
 public class ProductService implements CrudService<Product, Product, String> {
 
     private final ExtendedCrudRepository<ProductDAO, String> repository;
@@ -47,7 +48,7 @@ public class ProductService implements CrudService<Product, Product, String> {
             throw new IllegalArgumentException("Product cannot be null");
         }
 
-        ProductDAO productDAO = mapToDAO(product);
+        ProductDAO productDAO = MapperUtils.map(product);
         productDAO.setId(null);
         productDAO = repository.saveAndFlush(productDAO);
 
@@ -62,10 +63,10 @@ public class ProductService implements CrudService<Product, Product, String> {
         }
 
         ProductDAO productDAO = getProductFromDatabase(id);
-        productDAO.setName(product.name());
-        productDAO.setDescription(product.description());
-        productDAO.setOnHand(BigInteger.valueOf(product.onHand() != null ? product.onHand() : 0));
-        productDAO.setUnitPrice(product.unitPrice());
+        productDAO.setName(product.getName());
+        productDAO.setDescription(product.getDescription());
+        productDAO.setOnHand(BigInteger.valueOf(product.getOnHand() != null ? product.getOnHand() : 0));
+        productDAO.setUnitPrice(product.getUnitPrice());
         productDAO = repository.saveAndFlush(productDAO);
 
         return mapToDTO(productDAO);
@@ -96,17 +97,6 @@ public class ProductService implements CrudService<Product, Product, String> {
                 productDAO.getDescription(),
                 productDAO.getOnHand().intValue(),
                 productDAO.getUnitPrice()
-        );
-    }
-
-    private static ProductDAO mapToDAO(Product product) {
-        return new ProductDAO(
-                product.id(),
-                product.name(),
-                product.description(),
-                BigInteger.valueOf(product.onHand() != null ? product.onHand() : 0),
-                product.unitPrice(),
-                true
         );
     }
 }
