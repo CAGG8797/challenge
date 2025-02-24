@@ -2,6 +2,7 @@ package com.challenge.api.services.impl;
 
 import com.challenge.api.MapperUtils;
 import com.challenge.api.model.dao.OrderDAO;
+import com.challenge.api.model.dao.OrderItemDAO;
 import com.challenge.api.model.dto.OrderItemRequest;
 import com.challenge.api.model.dto.OrderItemResponse;
 import com.challenge.api.model.dto.OrderRequest;
@@ -20,6 +21,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service("ordersService")
 public class OrdersService implements CrudService<OrderRequest, OrderResponse, String> {
@@ -52,14 +55,14 @@ public class OrdersService implements CrudService<OrderRequest, OrderResponse, S
             throw new IllegalArgumentException("OrderRequest cannot be null");
         }
 
-        final OrderDAO orderDAO = repository.save(new OrderDAO(null, request.customerName(),
+        final OrderDAO orderDAO = repository.save(new OrderDAO(null, request.getCustomerName(),
                 LocalDateTime.now(), BigDecimal.ZERO, true, new LinkedList<>()));
 
-        final List<OrderItemResponse> orderItemResponses = request.items()
+        final List<OrderItemResponse> orderItemResponses = request.getItems()
                 .stream()
                 .map(item -> {
-                    OrderItemRequest orderItemRequest = new OrderItemRequest(orderDAO.getId(),
-                            item.productId(), item.quantity());
+                    OrderItemRequest orderItemRequest = new OrderItemRequest(null, orderDAO.getId(),
+                            item.getProductId(), item.getQuantity());
 
                     try {
                         OrderItemResponse orderItemResponse = orderItemsService.create(orderItemRequest);
@@ -81,15 +84,42 @@ public class OrdersService implements CrudService<OrderRequest, OrderResponse, S
     }
 
     @Override
-    @Transactional
-    public OrderResponse update(String s, OrderRequest request) throws Exception {
-        return null;
+    @Transactional(rollbackOn = Exception.class)
+    public OrderResponse update(String id, OrderRequest request) throws Exception {
+        if (request == null) {
+            throw new IllegalArgumentException("OrderRequest cannot be null");
+        }
+
+        OrderDAO orderDAO = getOrderFromDatabase(id);
+        orderDAO.setCustomerName(request.getCustomerName());
+
+        Map<String, OrderItemDAO> orderItemsById = orderDAO.getItems().stream()
+                .collect(Collectors.toMap(OrderItemDAO::getId, item -> item));
+
+        for(OrderItemRequest orderItemRequest : request.getItems()) {
+            orderItemRequest.setOrderId(id);
+            if (StringUtils.hasText(orderItemRequest.getId())) {
+                orderItemsService.update(orderItemRequest.getId(), orderItemRequest);
+            } else {
+                orderItemsService.create(orderItemRequest);
+            }
+            orderItemsById.remove(orderItemRequest.getId());
+        }
+
+        for (String orderItemId: orderItemsById.keySet()) {
+            orderItemsService.delete(orderItemId);
+        }
+
+        return MapperUtils.map(repository.save(orderDAO));
     }
 
     @Override
     @Transactional
-    public void delete(String s) {
-
+    public void delete(String id) throws Exception {
+        for (OrderItemDAO item : getOrderFromDatabase(id).getItems()) {
+            orderItemsService.delete(item.getId());
+        }
+        repository.softDeleteById(id);
     }
 
     private OrderDAO getOrderFromDatabase(String id) {

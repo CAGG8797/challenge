@@ -49,4 +49,14 @@ public class MapperUtils {
                 true
         );
     }
+
+    public static Product map(ProductDAO productDAO) {
+        return new Product(
+                productDAO.getId(),
+                productDAO.getName(),
+                productDAO.getDescription(),
+                productDAO.getOnHand().intValue(),
+                productDAO.getUnitPrice()
+        );
+    }
 }

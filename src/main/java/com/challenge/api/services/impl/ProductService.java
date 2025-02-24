@@ -33,12 +33,12 @@ public class ProductService implements CrudService<Product, Product, String> {
         }
 
         return repository.findAll(pageable)
-                .map(ProductService::mapToDTO);
+                .map(MapperUtils::map);
     }
 
     @Override
     public Product getById(String id) {
-        return mapToDTO(getProductFromDatabase(id));
+        return MapperUtils.map(getProductFromDatabase(id));
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ProductService implements CrudService<Product, Product, String> {
         productDAO.setId(null);
         productDAO = repository.saveAndFlush(productDAO);
 
-        return mapToDTO(productDAO);
+        return MapperUtils.map(productDAO);
     }
 
     @Override
@@ -69,8 +69,7 @@ public class ProductService implements CrudService<Product, Product, String> {
         productDAO.setUnitPrice(product.getUnitPrice());
         productDAO = repository.saveAndFlush(productDAO);
 
-        return mapToDTO(productDAO);
-
+        return MapperUtils.map(productDAO);
     }
 
     @Override
@@ -88,15 +87,5 @@ public class ProductService implements CrudService<Product, Product, String> {
 
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product with id " + id + " not found"));
-    }
-
-    private static Product mapToDTO(ProductDAO productDAO) {
-        return new Product(
-                productDAO.getId(),
-                productDAO.getName(),
-                productDAO.getDescription(),
-                productDAO.getOnHand().intValue(),
-                productDAO.getUnitPrice()
-        );
     }
 }

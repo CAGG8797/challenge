@@ -52,45 +52,86 @@ public class OrderItemsService implements CrudService<OrderItemRequest, OrderIte
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = OutOfStockException.class)
     public OrderItemResponse create(OrderItemRequest request) throws Exception {
         if (request == null) {
             throw new IllegalArgumentException("OrderItemRequest cannot be null");
         }
 
-        if (!StringUtils.hasText(request.orderId())) {
+        if (!StringUtils.hasText(request.getOrderId())) {
             throw new IllegalArgumentException("Order ID cannot be null or empty");
         }
 
-        if (!ordersRepository.existsById(request.orderId())) {
+        if (!ordersRepository.existsById(request.getOrderId())) {
             throw new EntityNotFoundException("Order does not exist");
         }
 
-        Product product = productService.getById(request.productId());
+        Product product = productService.getById(request.getProductId());
 
-        if (product.getOnHand() < request.quantity()) {
-            throw new OutOfStockException(request.productId());
+        if (product.getOnHand() < request.getQuantity()) {
+            throw new OutOfStockException(request.getProductId());
         }
 
         OrderItemDAO dao = new OrderItemDAO();
-        dao.setOrder(new OrderDAO(request.orderId()));
+        dao.setOrder(new OrderDAO(request.getOrderId()));
         dao.setProduct(MapperUtils.map(product));
-        dao.setQuantity(BigInteger.valueOf(request.quantity()));
+        dao.setQuantity(BigInteger.valueOf(request.getQuantity()));
         dao.setActive(true);
         dao.setUnitPrice(product.getUnitPrice());
 
-        product.setOnHand(product.getOnHand() - request.quantity());
-        productService.update(request.productId(), product);
+        product.setOnHand(product.getOnHand() - request.getQuantity());
+        productService.update(request.getProductId(), product);
 
         dao = repository.saveAndFlush(dao);
-        orderTotalService.calculateTotalAsync(request.orderId());
+        orderTotalService.calculateTotalAsync(request.getOrderId());
         return MapperUtils.map(dao);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = OutOfStockException.class)
     public OrderItemResponse update(String id, OrderItemRequest request) throws Exception {
-        return null;
+        String  oldOrderId;
+        Integer oldQuantity;
+        Product oldProduct;
+
+        if (request == null) {
+            throw new IllegalArgumentException("OrderItemRequest cannot be null");
+        }
+
+        OrderItemDAO existingOrderItem = getOrderItemFromDatabase(id);
+
+        if (!StringUtils.hasText(request.getOrderId()) || !ordersRepository.existsById(request.getOrderId())) {
+            throw new EntityNotFoundException("Order does not exist");
+        }
+
+        oldOrderId  = existingOrderItem.getOrder().getId();
+        oldQuantity = existingOrderItem.getQuantity().intValue();
+        oldProduct  = MapperUtils.map(existingOrderItem.getProduct());
+        oldProduct.setOnHand(oldProduct.getOnHand() + oldQuantity);
+
+        productService.update(oldProduct.getId(), oldProduct);
+
+        Product product = productService.getById(request.getProductId());
+
+        if (product.getOnHand() < request.getQuantity()) {
+            throw new OutOfStockException(request.getProductId());
+        }
+
+        product.setOnHand(product.getOnHand() - request.getQuantity());
+        productService.update(product.getId(), product);
+
+        existingOrderItem.setOrder(new OrderDAO(request.getOrderId()));
+        existingOrderItem.setProduct(MapperUtils.map(product));
+        existingOrderItem.setQuantity(BigInteger.valueOf(request.getQuantity()));
+        existingOrderItem.setActive(true);
+        existingOrderItem.setUnitPrice(product.getUnitPrice());
+
+        repository.saveAndFlush(existingOrderItem);
+
+        orderTotalService.calculateTotalAsync(request.getOrderId());
+        orderTotalService.calculateTotalAsync(oldOrderId);
+
+        return MapperUtils.map(existingOrderItem);
     }
 
     @Override

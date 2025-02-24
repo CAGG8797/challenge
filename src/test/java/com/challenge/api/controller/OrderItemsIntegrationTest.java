@@ -7,7 +7,6 @@ import com.challenge.api.repositories.OrderItemsRepository;
 import com.challenge.api.repositories.OrdersRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
-import jakarta.transaction.Transactional;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ public class OrderItemsIntegrationTest {
 
     @Test
     public void createOrderItemSuccessfully() throws Exception {
-        OrderItemRequest orderItemRequest = new OrderItemRequest("2dddbca6-2b3f-49fe-8178-04bc5900144c", "b591a459-2e56-4e6d-9576-5c479c419dc8", 1);
+        OrderItemRequest orderItemRequest = new OrderItemRequest(null, "2dddbca6-2b3f-49fe-8178-04bc5900144c", "b591a459-2e56-4e6d-9576-5c479c419dc8", 1);
 
         MvcResult result = mvc.perform(post("/order-items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +65,7 @@ public class OrderItemsIntegrationTest {
 
     @Test
     public void createOrderItemWithInvalidProductId() throws Exception {
-        OrderItemRequest orderItemRequest = new OrderItemRequest("2dddbca6-2b3f-49fe-8178-04bc5900144c", "invalid-product-id", 1);
+        OrderItemRequest orderItemRequest = new OrderItemRequest(null, "2dddbca6-2b3f-49fe-8178-04bc5900144c", "invalid-product-id", 1);
 
         mvc.perform(post("/order-items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -77,7 +76,7 @@ public class OrderItemsIntegrationTest {
 
     @Test
     public void createOrderItemWithNegativeQuantity() throws Exception {
-        OrderItemRequest orderItemRequest = new OrderItemRequest("2dddbca6-2b3f-49fe-8178-04bc5900144c", "b591a459-2e56-4e6d-9576-5c479c419dc8", -1);
+        OrderItemRequest orderItemRequest = new OrderItemRequest(null, "2dddbca6-2b3f-49fe-8178-04bc5900144c", "b591a459-2e56-4e6d-9576-5c479c419dc8", -1);
 
         mvc.perform(post("/order-items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +87,7 @@ public class OrderItemsIntegrationTest {
 
     @Test
     public void createOrderItemWithZeroQuantity() throws Exception {
-        OrderItemRequest orderItemRequest = new OrderItemRequest("2dddbca6-2b3f-49fe-8178-04bc5900144c", "b591a459-2e56-4e6d-9576-5c479c419dc8", 0);
+        OrderItemRequest orderItemRequest = new OrderItemRequest(null, "2dddbca6-2b3f-49fe-8178-04bc5900144c", "b591a459-2e56-4e6d-9576-5c479c419dc8", 0);
 
         mvc.perform(post("/order-items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +98,7 @@ public class OrderItemsIntegrationTest {
 
     @Test
     public void createOrderItemWithNonExistentOrderId() throws Exception {
-        OrderItemRequest orderItemRequest = new OrderItemRequest("non-existent-order-id", "b591a459-2e56-4e6d-9576-5c479c419dc8", 1);
+        OrderItemRequest orderItemRequest = new OrderItemRequest(null, "non-existent-order-id", "b591a459-2e56-4e6d-9576-5c479c419dc8", 1);
 
         mvc.perform(post("/order-items")
                         .contentType(MediaType.APPLICATION_JSON)

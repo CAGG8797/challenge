@@ -1,7 +1,11 @@
 package com.challenge.api.model.dto;
 
+import lombok.Data;
+
 import java.util.List;
 
-public record OrderRequest(String customerName,
-                           List<OrderItemRequest> items) {
+@Data
+public class OrderRequest {
+    private String customerName;
+    private List<OrderItemRequest> items;
 }

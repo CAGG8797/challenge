@@ -13,7 +13,7 @@ spring:
       ddl-auto: create
   datasource:
     platform: postgres
-    url: jdbc:postgresql://localhost:5432/mydb
-    username: postgres
-    password: yourpassword
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driverClassName: org.postgresql.Driver
