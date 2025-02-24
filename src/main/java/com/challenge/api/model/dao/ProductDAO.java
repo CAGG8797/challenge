@@ -18,6 +18,10 @@ import java.math.BigInteger;
 @AllArgsConstructor
 public class ProductDAO {
 
+    public ProductDAO(String id) {
+        this.id = id;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "product_id", updatable = false, nullable = false)

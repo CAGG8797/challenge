@@ -15,7 +15,7 @@ public class ProductController {
     private final CrudService<Product, Product, String> productService;
 
     @Autowired
-    ProductController(@Qualifier("productService") CrudService<Product, Product, String> productService) {
+    ProductController(@Qualifier("productsService") CrudService<Product, Product, String> productService) {
         this.productService = productService;
     }
 
@@ -44,7 +44,7 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) {
+    public void delete(@PathVariable String id) throws Exception {
         productService.delete(id);
     }
 }
