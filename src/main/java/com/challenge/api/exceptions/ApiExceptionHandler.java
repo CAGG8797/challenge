@@ -23,16 +23,32 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<APIErrorResponse> handleConstraintDeclaration(ConstraintViolationException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        return ResponseEntity.badRequest()
                 .body(new APIErrorResponse(ex.getConstraintViolations()
                         .stream()
                         .map(ConstraintViolation::getMessage)
                         .toList()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<APIErrorResponse> handleIllegalArgumentExceptions(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest()
+                .body(new APIErrorResponse(List.of(ex.getMessage())));
+    }
+
     @ExceptionHandler(OutOfStockException.class)
     public ResponseEntity<APIErrorResponse> handleOutOfStockException(OutOfStockException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new APIErrorResponse(List.of(ex.getMessage())));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<APIErrorResponse> handleGenericException(Exception ex) {
+        if (ex.getCause() instanceof ConstraintViolationException) {
+            return handleConstraintDeclaration((ConstraintViolationException) ex.getCause());
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new APIErrorResponse(List.of(ex.getMessage())));
     }
 }

@@ -9,6 +9,7 @@ import com.challenge.api.model.dto.OrderRequest;
 import com.challenge.api.model.dto.OrderResponse;
 import com.challenge.api.repositories.ExtendedCrudRepository;
 import com.challenge.api.services.CrudService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,13 +56,17 @@ public class OrdersService implements CrudService<OrderRequest, OrderResponse, S
             throw new IllegalArgumentException("OrderRequest cannot be null");
         }
 
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Order items are required");
+        }
+
         final OrderDAO orderDAO = repository.save(new OrderDAO(null, request.getCustomerName(),
                 LocalDateTime.now(), BigDecimal.ZERO, true, new LinkedList<>()));
 
         final List<OrderItemResponse> orderItemResponses = request.getItems()
                 .stream()
                 .map(item -> {
-                    OrderItemRequest orderItemRequest = new OrderItemRequest(null, orderDAO.getId(),
+                    OrderItemRequest orderItemRequest = new OrderItemRequest(orderDAO.getId(),
                             item.getProductId(), item.getQuantity());
 
                     try {
@@ -98,12 +103,12 @@ public class OrdersService implements CrudService<OrderRequest, OrderResponse, S
 
         for(OrderItemRequest orderItemRequest : request.getItems()) {
             orderItemRequest.setOrderId(id);
-            if (StringUtils.hasText(orderItemRequest.getId())) {
-                orderItemsService.update(orderItemRequest.getId(), orderItemRequest);
+            if (StringUtils.hasText(id)) {
+                orderItemsService.update(id, orderItemRequest);
             } else {
                 orderItemsService.create(orderItemRequest);
             }
-            orderItemsById.remove(orderItemRequest.getId());
+            orderItemsById.remove(id);
         }
 
         for (String orderItemId: orderItemsById.keySet()) {
@@ -128,6 +133,6 @@ public class OrdersService implements CrudService<OrderRequest, OrderResponse, S
         }
 
         return repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Order does not exist"));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
     }
 }

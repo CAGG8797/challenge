@@ -18,6 +18,7 @@ public class MapperUtils {
     public static OrderResponse map(OrderDAO order) {
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setId(order.getId());
+        orderResponse.setTotal(order.getTotal().setScale(2));
         orderResponse.setCustomerName(order.getCustomerName());
 
         orderResponse.setItems(order.getItems()
