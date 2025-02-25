@@ -1,9 +1,6 @@
 spring:
   application:
     name: api
-  data:
-    rest:
-      detection-strategy: annotated
   jpa:
     database: POSTGRESQL
     database-platform: org.hibernate.dialect.PostgreSQLDialect
