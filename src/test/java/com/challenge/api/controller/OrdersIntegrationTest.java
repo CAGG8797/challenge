@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -148,6 +149,39 @@ public class OrdersIntegrationTest extends IntegrationTestsBase {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void deleteOrderSuccessfully() throws Exception {
+        OrderDAO orderDAO = insertNewOrderInDatabase();
+
+        MvcResult productResult = mvc.perform(get("/products/id_1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Integer onHandBeforeDelete = JsonPath.read(productResult.getResponse().getContentAsString(), "$.onHand");
+
+        mvc.perform(get(PATH + "/" + orderDAO.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        mvc.perform(delete(PATH + "/" + orderDAO.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get(PATH + "/" + orderDAO.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        mvc.perform(get("/products/id_1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.onHand", Matchers.is(onHandBeforeDelete + 1)));
+    }
 
     public static String asJsonString(final Object obj) {
         try {
@@ -159,9 +193,9 @@ public class OrdersIntegrationTest extends IntegrationTestsBase {
 
     private static Stream<Arguments> getOrderItemsRequest() {
         return Stream.of(
-                Arguments.of(List.of(orderItem(1,1)), BigDecimal.valueOf(10.00).setScale(2)),
-                Arguments.of(List.of(orderItem(1,1), orderItem(5,2)), BigDecimal.valueOf(110.00).setScale(2)),
-                Arguments.of(List.of(orderItem(2,5), orderItem(3,5)), BigDecimal.valueOf(250.00).setScale(2))
+                Arguments.of(List.of(orderItem(1, 1)), BigDecimal.valueOf(10.00).setScale(2)),
+                Arguments.of(List.of(orderItem(1, 1), orderItem(5, 2)), BigDecimal.valueOf(110.00).setScale(2)),
+                Arguments.of(List.of(orderItem(2, 5), orderItem(3, 5)), BigDecimal.valueOf(250.00).setScale(2))
         );
     }
 
