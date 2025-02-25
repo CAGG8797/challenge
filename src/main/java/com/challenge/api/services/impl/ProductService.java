@@ -1,6 +1,6 @@
 package com.challenge.api.services.impl;
 
-import com.challenge.api.MapperUtils;
+import com.challenge.api.utils.MapperUtils;
 import com.challenge.api.model.dao.ProductDAO;
 import com.challenge.api.model.dto.Product;
 import com.challenge.api.repositories.ExtendedCrudRepository;

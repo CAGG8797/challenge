@@ -1,6 +1,6 @@
 package com.challenge.api.services.impl;
 
-import com.challenge.api.MapperUtils;
+import com.challenge.api.utils.MapperUtils;
 import com.challenge.api.exceptions.OutOfStockException;
 import com.challenge.api.model.dao.OrderDAO;
 import com.challenge.api.model.dao.OrderItemDAO;

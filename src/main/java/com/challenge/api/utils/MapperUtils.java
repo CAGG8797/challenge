@@ -1,4 +1,4 @@
-package com.challenge.api;
+package com.challenge.api.utils;
 
 import com.challenge.api.model.dao.OrderDAO;
 import com.challenge.api.model.dao.OrderItemDAO;
